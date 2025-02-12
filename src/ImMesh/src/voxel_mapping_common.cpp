@@ -1035,7 +1035,6 @@ void Voxel_mapping::process_image(cv::Mat &temp_img, double msg_time)
     img_pose->m_timestamp = msg_time;
     img_pose->init_cubic_interpolation();   // 这个函数只是设置了一些基本信息(剩下所有Image_frame的长宽)
     img_pose->image_equalize();
-
     // 需要重新找一个容器用于存放数据
 //    m_camera_data_mutex.lock();
 //    m_queue_image_with_pose.push_back( img_pose );
