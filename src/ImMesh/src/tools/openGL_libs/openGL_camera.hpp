@@ -460,7 +460,11 @@ struct GL_camera
     void        load_camera( std::string filename );
     GLFWwindow* init_openGL_and_ImGUI( const char* window_title, int full_screen = 1 , int font_size_bias = 4);
     void        light_on( bool& light_open, bool show_win = true );
-    void        draw_frame_start( ImVec4 clear_color = ImVec4( 0, 0, 0, 1.0 ) );
+
+    // note 设置背景颜色(0 0 0 1) 黑色 反之白色
+    // void        draw_frame_start( ImVec4 clear_color = ImVec4( 0, 0, 0, 1.0 ) );
+    void        draw_frame_start( ImVec4 clear_color = ImVec4( 1.0, 1.0, 1.0, 1.0 ) );
+
     void        tracking_camera( const Eigen::Quaterniond& current_camera_q, const vec_3& current_camera_pos );
 
    

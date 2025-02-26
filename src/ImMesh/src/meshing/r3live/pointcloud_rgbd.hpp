@@ -89,7 +89,7 @@ class RGB_pts
 #else
     double m_pos[ 3 ] = { 0 };
     double m_pos_aft_smooth[ 3 ] = { 0 };
-    double m_rgb[ 3 ] = { 0 };
+    double m_rgb[ 3 ] = { 0,0,0 };
     double m_cov_rgb[ 3 ] = { 0 };
     int    m_N_rgb = 0;
     int    m_pt_index = 0;
@@ -108,9 +108,10 @@ class RGB_pts
 
     void clear()
     {
-        m_rgb[ 0 ] = 0;
-        m_rgb[ 1 ] = 0;
-        m_rgb[ 2 ] = 0;
+        // note 将一些不应该出现的黑点进行修正(将当前所有默认的点转换成为白点)
+        m_rgb[ 0 ] = 255;
+        m_rgb[ 1 ] = 255;
+        m_rgb[ 2 ] = 255;
         m_N_rgb = 0;
         m_obs_dis = 0;
         m_last_obs_time = 0;

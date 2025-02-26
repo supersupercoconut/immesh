@@ -207,7 +207,7 @@ void incremental_mesh_reconstruction( pcl::PointCloud< pcl::PointXYZI >::Ptr fra
     image_pose->m_timestamp = ros::Time::now().toSec();
     image_pose->init_cubic_interpolation();
     // 先注释这个部分避免其影响最终渲染的颜色
-    // image_pose->image_equalize();
+    image_pose->image_equalize();
 
     /*** 渲染部分 ***/
     tim_render.tic();
@@ -221,7 +221,6 @@ void incremental_mesh_reconstruction( pcl::PointCloud< pcl::PointXYZI >::Ptr fra
     image_pose->m_acc_render_count = 0;
     image_pose->m_acc_photometric_error = 0;
     // 模仿immesh里面mesh重建的部分 —— 直接在这里写成tbb的加速 | 因为这个部分只会调用全局地图中的点云数据,所以上的是与之前相同的锁
-
     try
     {
         /// @attention 这里使用值传递与引用传递的区别有多少 —— 多线程里面两者是不是有些区别
@@ -237,8 +236,10 @@ void incremental_mesh_reconstruction( pcl::PointCloud< pcl::PointXYZI >::Ptr fra
                 for (int pt_idx = 0; pt_idx < voxel_ptr->m_pts_in_grid.size(); pt_idx++)
                 {
                     pt_w = voxel_ptr->m_pts_in_grid[pt_idx]->get_pos();
-                    if (image_pose->project_3d_point_in_this_img(pt_w, u, v, nullptr, 1.0) == false)
+                    if (image_pose->project_3d_point_in_this_img(pt_w, u, v, nullptr, 1.0) == false) {
                         continue;
+                    }
+
 
                     pt_cam_norm = (pt_w - image_pose->m_pose_w2c_t).norm();
                     // 在图像上获取点云的颜色信息 | 然后对这个voxel中的所有点云的颜色信息进行更新
@@ -311,7 +312,7 @@ void incremental_mesh_reconstruction( pcl::PointCloud< pcl::PointXYZI >::Ptr fra
             g_mutex_append_map.unlock();
             // Voxel-wise mesh pull
             pts_in_voxels = retrieve_neighbor_pts_kdtree( pts_in_voxels );
-           pts_in_voxels = remove_outlier_pts( pts_in_voxels, voxel );
+            pts_in_voxels = remove_outlier_pts( pts_in_voxels, voxel );
 
             std::set< long > relative_point_indices;
             for ( RGB_pt_ptr tri_ptr : pts_in_voxels )

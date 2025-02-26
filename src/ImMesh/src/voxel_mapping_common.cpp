@@ -810,11 +810,11 @@ void Voxel_mapping::read_ros_parameters( ros::NodeHandle &nh )
     nh.param< int >( "publish/pub_point_skip", m_pub_point_skip, 1 );
     nh.param< double >( "meshing/distance_scale", m_meshing_distance_scale, 0.5 );
     nh.param< double >( "meshing/points_minimum_scale", m_meshing_points_minimum_scale, 0.1 );
-    nh.param< double >( "meshing/voxel_resolution", m_meshing_voxel_resolution, 0.4 );
+    nh.param< double >( "meshing/voxel_resolution", m_meshing_voxel_resolution, 0.5 );
     nh.param< double >( "meshing/region_size", m_meshing_region_size, 10.0 );
     nh.param< int >( "meshing/if_draw_mesh", m_if_draw_mesh, 1.0 );
     nh.param< int >( "meshing/enable_mesh_rec", m_if_enable_mesh_rec, 1 );
-    nh.param< int >( "meshing/maximum_thread_for_rec_mesh", m_meshing_maximum_thread_for_rec_mesh, 24 );
+    nh.param< int >( "meshing/maximum_thread_for_rec_mesh", m_meshing_maximum_thread_for_rec_mesh, 32 );
     nh.param< int >( "meshing/number_of_pts_append_to_map", m_meshing_number_of_pts_append_to_map, 100000 );
 
 
@@ -856,50 +856,19 @@ void Voxel_mapping::read_ros_parameters( ros::NodeHandle &nh )
     /*** /////////////////// ***/
 
     // /*r3live数据集*/
-    // int width = 1280;
-    // int height = 1024;
-    // camera_intrinsic_data = { 863.4241, 0.0, 640.6808,
-    //                           0.0,  863.4171, 518.3392,
-    //                           0.0, 0.0, 1.0};
-    // camera_dist_coeffs_data = { -0.1080, 0.1050, -1.2872e-04, 5.7923e-05, -0.0222};
-    // // Lidar到camera的旋转+平移
-    // camera_ext_R_data ={-0.00113207, -0.0158688, 0.999873,
-    //                     -0.9999999,  -0.000486594, -0.00113994,
-    //                     0.000504622,  -0.999874,  -0.0158682};
-    //
-    // camera_ext_t_data = {0.0, 0.0, 0.0};
-    // /*** lidar转换到imu ***/
-    // m_extrin_R = {1,0,0,
-    //               0,1,0,
-    //               0,0,1};
-    //
-    // m_extrin_T = {0.04165, 0.02326, -0.0284};
-
-    /* M3DGR数据集 */
-    int width = 640;
-    int height = 480;
-    camera_intrinsic_data = {607.79772949, 0.0, 328.797943115234,
-                              0.0,  607.835266113281, 245.53321838789,
+    m_img_topic = "/camera/image_color/compressed";
+    int width = 1280;
+    int height = 1024;
+    camera_intrinsic_data = { 863.4241, 0.0, 640.6808,
+                              0.0,  863.4171, 518.3392,
                               0.0, 0.0, 1.0};
-    camera_dist_coeffs_data = { 0.00, 0.00, 0.0, 0.0, 0.0};
+    camera_dist_coeffs_data = { -0.1080, 0.1050, -1.2872e-04, 5.7923e-05, -0.0222};
     // Lidar到camera的旋转+平移
-    // camera_ext_R_data ={0.02108, -0.00387, 0.9997703,
-    //                     -0.9994,  0.02752, 0.02118,
-    //                     -0.02760, -0.99961, -0.00329};
+    camera_ext_R_data ={-0.00113207, -0.0158688, 0.999873,
+                        -0.9999999,  -0.000486594, -0.00113994,
+                        0.000504622,  -0.999874,  -0.0158682};
 
-    // 2-10 手动调试参数
-    // camera_ext_R_data ={-0.0247904,  0.0023921,  0.9996898,
-    // -0.9992074,  0.0310943, -0.0248528,
-    // -0.0311441, -0.9995136,  0.0016194 };
-    //
-    // camera_ext_t_data = {-0.20649940639000343, 0.7369323900722907, -0.40486292124905459};
-
-    camera_ext_R_data ={-0.0670257, -0.0473156,  0.9966287,
-        -0.9973689,  0.0308274, -0.0656119,
-        -0.0276190, -0.9984042, -0.0492573};
-
-    camera_ext_t_data = {-0.7594152828450921,  2.6594789842645086, 2.5159170074605206};
-
+    camera_ext_t_data = {0.0, 0.0, 0.0};
     /*** lidar转换到imu ***/
     m_extrin_R = {1,0,0,
                   0,1,0,
@@ -907,7 +876,53 @@ void Voxel_mapping::read_ros_parameters( ros::NodeHandle &nh )
 
     m_extrin_T = {0.04165, 0.02326, -0.0284};
 
+    /* M3DGR数据集 */
+    // m_lid_topic = "/livox/avia/lidar";
+    // m_imu_topic = "/livox/avia/imu";
+    // m_img_topic = "/camera/color/image_raw/compressed";
+    // int width = 640;
+    // int height = 480;
+    // camera_intrinsic_data = {607.79772949, 0.0, 328.797943115234,
+    //                           0.0,  607.835266113281, 245.53321838789,
+    //                           0.0, 0.0, 1.0};
+    // camera_dist_coeffs_data = { 0.00, 0.00, 0.0, 0.0, 0.0};
+    // // Lidar到camera的旋转+平移
+    // // camera_ext_R_data ={0.02108, -0.00387, 0.9997703,
+    // //                     -0.9994,  0.02752, 0.02118,
+    // //                     -0.02760, -0.99961, -0.00329};
+    // // 2-10 手动调试参数
+    // // camera_ext_R_data ={-0.0247904,  0.0023921,  0.9996898,
+    // // -0.9992074,  0.0310943, -0.0248528,
+    // // -0.0311441, -0.9995136,  0.0016194 };
+    // // camera_ext_t_data = {-0.20649940639000343, 0.7369323900722907, -0.40486292124905459};
+    //
+    // camera_ext_R_data ={-0.0670257, -0.0473156,  0.9966287,
+    //     -0.9973689,  0.0308274, -0.0656119,
+    //     -0.0276190, -0.9984042, -0.0492573};
+    //
+    // camera_ext_t_data = {-0.7594152828450921,  2.6594789842645086, 2.5159170074605206};
 
+    /* M3DGR 图像放大版本 */
+    // int width = 1280;
+    // int height = 720;
+    // camera_intrinsic_data = {911.696533203125, 0.0, 653.196960449219,
+    //                           0.0,  911.7528652344, 368.299835205078,
+    //                           0.0, 0.0, 1.0};
+    // camera_dist_coeffs_data = { 0.00, 0.00, 0.0, 0.0, 0.0};
+    // // Lidar到camera的旋转+平移
+    // camera_ext_R_data ={ -0.0134829,  0.0162040,  0.9997778,
+    //                         -0.9994130,  0.0312761, -0.0139849,
+    //                         -0.0314957, -0.9993794,  0.0157728};
+    //
+    // camera_ext_t_data = {-0.11477650734217243, -0.03333126591191406, -0.22590150443123};
+
+
+    /*** lidar转换到imu ***/
+    m_extrin_R = {1,0,0,
+                  0,1,0,
+                  0,0,1};
+
+    m_extrin_T = {0.04165, 0.02326, -0.0284};
 
     /*** /////////////////// ***/
 
@@ -933,19 +948,11 @@ void Voxel_mapping::read_ros_parameters( ros::NodeHandle &nh )
     LOG(INFO) << "g_cam_k: ";
     LOG(INFO) << g_cam_k;
 
-    m_lid_topic = "/livox/avia/lidar";
-    m_imu_topic = "/livox/avia/imu";
-    m_img_topic = "/camera/color/image_raw/compressed";
+
     LOG(INFO) << "Subscribing to topic: " << m_lid_topic.c_str();
     LOG(INFO) << "Subscribing to topic: " << m_imu_topic.c_str();
     LOG(INFO) << "Subscribing to topic: " << m_img_topic.c_str();
-    // 获取rosbag中的数据
-    m_topics.push_back(m_lid_topic);
-    m_topics.push_back(m_imu_topic);
-    m_topics.push_back(m_img_topic);
 
-
-    LOG(INFO) << "m_bag_file: " << m_bag_file;
     LOG(INFO) << "m_p_pre->lidar_type: " << m_p_pre->lidar_type;
 
     cout << "[Ros_parameter]: Camera Intrinsic: " << endl;

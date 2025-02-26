@@ -77,41 +77,86 @@ struct Region_triangles_shader
         }
     }
 
-    void unparse_triangle_set_to_vector( const Triangle_set &tri_angle_set )
+    void unparse_triangle_set_to_vector(const Triangle_set &tri_angle_set)
     {
-        // TODO: synchronized data buffer here:
-        std::unique_lock< std::mutex > lock( *m_mutex_ptr );
-        m_triangle_pt_vec.resize( tri_angle_set.size() * 3 );
-        m_triangle_color_vec.resize( tri_angle_set.size() * 3 );
+        std::unique_lock<std::mutex> lock(*m_mutex_ptr);
+        m_triangle_pt_vec.resize(tri_angle_set.size() * 3);
+        m_triangle_color_vec.resize(tri_angle_set.size() * 3);
 
-        // cout << "Number of pt_size = " << m_triangle_pt_list.size() << endl;
         int count = 0;
-        for ( Triangle_set::iterator it = tri_angle_set.begin(); it != tri_angle_set.end(); it++ )
+        for (Triangle_set::iterator it = tri_angle_set.begin(); it != tri_angle_set.end(); it++)
         {
-            for ( size_t pt_idx = 0; pt_idx < 3; pt_idx++ )
+            for (size_t pt_idx = 0; pt_idx < 3; pt_idx++)
             {
-                if ( g_map_rgb_pts_mesh.m_rgb_pts_vec[ ( *it )->m_tri_pts_id[ pt_idx ] ]->m_smoothed == false )
+                if (g_map_rgb_pts_mesh.m_rgb_pts_vec[(*it)->m_tri_pts_id[pt_idx]]->m_smoothed == false)
                 {
-                    g_map_rgb_pts_mesh.smooth_pts( g_map_rgb_pts_mesh.m_rgb_pts_vec[ ( *it )->m_tri_pts_id[ pt_idx ] ], g_ply_smooth_factor,
-                                                   g_ply_smooth_k, g_kd_tree_accept_pt_dis );
+                    g_map_rgb_pts_mesh.smooth_pts(g_map_rgb_pts_mesh.m_rgb_pts_vec[(*it)->m_tri_pts_id[pt_idx]],
+                        g_ply_smooth_factor, g_ply_smooth_k, g_kd_tree_accept_pt_dis);
                 }
             }
-            vec_3 pt_a = g_map_rgb_pts_mesh.m_rgb_pts_vec[ ( *it )->m_tri_pts_id[ 0 ] ]->get_pos( 1 );
-            vec_3 pt_b = g_map_rgb_pts_mesh.m_rgb_pts_vec[ ( *it )->m_tri_pts_id[ 1 ] ]->get_pos( 1 );
-            vec_3 pt_c = g_map_rgb_pts_mesh.m_rgb_pts_vec[ ( *it )->m_tri_pts_id[ 2 ] ]->get_pos( 1 );
 
-            m_triangle_pt_vec[ count ] = pt_a.cast< float >();
-            m_triangle_pt_vec[ count + 1 ] = pt_b.cast< float >();
-            m_triangle_pt_vec[ count + 2 ] = pt_c.cast< float >();
+            vec_3 pt_a = g_map_rgb_pts_mesh.m_rgb_pts_vec[(*it)->m_tri_pts_id[0]]->get_pos(1);
+            vec_3 pt_b = g_map_rgb_pts_mesh.m_rgb_pts_vec[(*it)->m_tri_pts_id[1]]->get_pos(1);
+            vec_3 pt_c = g_map_rgb_pts_mesh.m_rgb_pts_vec[(*it)->m_tri_pts_id[2]]->get_pos(1);
 
-            if(m_if_set_color)
+            m_triangle_pt_vec[count] = pt_a.cast<float>();
+            m_triangle_pt_vec[count + 1] = pt_b.cast<float>();
+            m_triangle_pt_vec[count + 2] = pt_c.cast<float>();
+
+            if (m_if_set_color)
             {
-                for(auto i = 0; i < 3; ++i)
+                std::vector<vec_3f> colors(3);
+                std::vector<bool> is_invalid(3, false);
+                std::vector<vec_3f> valid_colors;
+
+                // 获取所有点的颜色，并标记无效点（黑色或白色）
+                for (int i = 0; i < 3; ++i)
                 {
-                    double* rgb = g_map_rgb_pts_mesh.m_rgb_pts_vec[ ( *it )->m_tri_pts_id[ i ] ]->m_rgb;
-                    vec_3f color(static_cast<float>(rgb[2]), static_cast<float>(rgb[1]), static_cast<float>(rgb[0]));
-                    m_triangle_color_vec[count+i] = color;
+                    double* rgb = g_map_rgb_pts_mesh.m_rgb_pts_vec[(*it)->m_tri_pts_id[i]]->m_rgb;
+                    colors[i] = vec_3f(static_cast<float>(rgb[2]),
+                                     static_cast<float>(rgb[1]),
+                                     static_cast<float>(rgb[0]));
+
+                    // 判断是否为黑色或白色点
+                    if ((colors[i].x() < 1 && colors[i].y() < 1 && colors[i].z() < 1) ||  // 黑色
+                        (colors[i].x() > 254 && colors[i].y() > 254 && colors[i].z() > 254))  // 白色
+                    {
+                        is_invalid[i] = true;
+                    }
+                    else
+                    {
+                        valid_colors.push_back(colors[i]);
+                    }
                 }
+
+                // 根据有效点的数量进行处理
+                if (valid_colors.size() > 0)  // 至少有一个有效点
+                {
+                    vec_3f replacement_color;
+                    if (valid_colors.size() >= 2)  // 有两个或更多有效点
+                    {
+                        // 计算平均值
+                        replacement_color = vec_3f(0, 0, 0);
+                        for (const auto& color : valid_colors)
+                        {
+                            replacement_color += color;
+                        }
+                        replacement_color /= valid_colors.size();
+                    }
+                    else  // 只有一个有效点
+                        replacement_color = valid_colors[0];
+
+                    // 替换所有无效点的颜色
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        if (is_invalid[i])
+                            colors[i] = replacement_color;
+                    }
+                }
+
+                // 设置最终颜色
+                for (int i = 0; i < 3; ++i)
+                    m_triangle_color_vec[count + i] = colors[i];
             }
             count = count + 3;
         }

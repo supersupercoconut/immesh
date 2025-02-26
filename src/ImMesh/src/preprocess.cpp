@@ -214,6 +214,8 @@ void Preprocess::avia_handler( const livox_ros_driver::CustomMsg::ConstPtr &msg 
                 valid_num++;
                 if ( valid_num % point_filter_num == 0 )
                 {
+                    // note 手动处理avia中收获到的异常点
+                    // if (msg->points[i].z < -2) continue;
                     pl_full[ i ].x = msg->points[ i ].x;
                     pl_full[ i ].y = msg->points[ i ].y;
                     pl_full[ i ].z = msg->points[ i ].z;

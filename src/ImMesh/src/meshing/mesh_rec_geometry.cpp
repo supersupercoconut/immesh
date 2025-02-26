@@ -357,7 +357,7 @@ std::vector< RGB_pt_ptr > retrieve_neighbor_pts_kdtree( const std::vector< RGB_p
             {
                 new_pts_index.insert( kdtree_pt_vector[ k ].m_pt_idx );
             }
-            
+
             if(sqrt( pt_dis_vector[ k ] ) < g_kd_tree_accept_pt_dis*2)
             {
                 smooth_count++;
@@ -368,7 +368,7 @@ std::vector< RGB_pt_ptr > retrieve_neighbor_pts_kdtree( const std::vector< RGB_p
         smooth_vec = smooth_vec * ( smooth_factor ) + pt_vec * ( 1 - smooth_factor );
         rgb_pts_vec[ i ]->set_smooth_pos( smooth_vec );
     }
-   
+
     for ( auto p : new_pts_index )
     {
         res_pt_vec.push_back( g_map_rgb_pts_mesh.m_rgb_pts_vec[ p ] );
